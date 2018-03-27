@@ -1,54 +1,64 @@
-#include "PZEM004T.h"
 #include <EEPROM.h>
 #include <ESP8266WiFi.h>
-#include <PubSubClient.h>
+#include "pubsubclient.h"
+#include "PZEM004T.h"
 
 // Connect to the WiFi
 const char* ssid = "Dear John";
 const char* password = "password123";
-const char* mqtt_server = "macman";
- 
+const char* mqtt_server = "minibian";
+
 WiFiClient espClient;
 PubSubClient client(espClient);
- 
-const byte ledPin = 0; // Pin with LED on Adafruit Huzzah
 PZEM004T pzem(&Serial); // Connect to PZEM via HW_serial
- 
-void callback(char* topic, byte* payload, unsigned int length) {
- for (int i=0;i<length;i++) {
-  char receivedChar = (char)payload[i];
-  if (receivedChar == '0')
-  // ESP8266 Huzzah outputs are "reversed"
-  digitalWrite(ledPin, HIGH);
-  if (receivedChar == '1')
-   digitalWrite(ledPin, LOW);
+
+unsigned long timer = millis();
+
+void
+callback(const char* topic, const byte* payload, const unsigned int length)
+{
+  String stopic = topic;
+  String spayload = (const char*)payload;
+
+}
+
+void
+reconnect()
+{
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    // Attempt to connect
+    if (client.connect(mqtt_server)) {
+      //client.subscribe("powermeter");
+    } else {
+      delay(5000);
+    }
   }
 }
- 
- 
-void reconnect() {
- // Loop until we're reconnected
- while (!client.connected()) {
-   // Attempt to connect
-   if (client.connect("ESP8266 Client")) {
-    client.subscribe("ledStatus");
-   } else {
-    delay(5000);
-    }
- }
-}
- 
-void setup()
+
+void
+setup()
 {
- client.setServer(mqtt_server, 1883);
- client.setCallback(callback);
- 
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
 }
- 
-void loop()
+
+void
+loop()
 {
- if (!client.connected()) {
-  reconnect();
- }
- client.loop();
+  if (!client.connected()) {
+    reconnect();
+  }
+
+  if (timer - millis() > 2000){
+    // Send report every 2 seconds
+    String msg;
+    msg += String(pzem.voltage()) + " V\n";
+    msg += String(pzem.current()) + " A\n";
+    msg += String(pzem.power()) + " W";
+    client.publish("powermeter/report", msg.c_str(), msg.length());
+    timer = millis();
+  }
+
+  client.loop();
 }

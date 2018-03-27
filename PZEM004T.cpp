@@ -48,7 +48,7 @@ float PZEM004T::voltage()
     uint8_t data[RESPONSE_DATA_SIZE];
 
     send(ipaddr, PZEM_VOLTAGE);
-    if(!recieve(RESP_VOLTAGE, data))
+    if(!receive(RESP_VOLTAGE, data))
         return PZEM_ERROR_VALUE;
 
     return (data[0] << 8) + data[1] + (data[2] / 10.0);
@@ -59,7 +59,7 @@ float PZEM004T::current()
     uint8_t data[RESPONSE_DATA_SIZE];
 
     send(ipaddr, PZEM_CURRENT);
-    if(!recieve(RESP_CURRENT, data))
+    if(!receive(RESP_CURRENT, data))
         return PZEM_ERROR_VALUE;
 
     return (data[0] << 8) + data[1] + (data[2] / 100.0);
@@ -70,7 +70,7 @@ float PZEM004T::power()
     uint8_t data[RESPONSE_DATA_SIZE];
 
     send(ipaddr, PZEM_POWER);
-    if(!recieve(RESP_POWER, data))
+    if(!receive(RESP_POWER, data))
         return PZEM_ERROR_VALUE;
 
     return (data[0] << 8) + data[1];
@@ -81,7 +81,7 @@ float PZEM004T::energy()
     uint8_t data[RESPONSE_DATA_SIZE];
 
     send(ipaddr, PZEM_ENERGY);
-    if(!recieve(RESP_ENERGY, data))
+    if(!receive(RESP_ENERGY, data))
         return PZEM_ERROR_VALUE;
 
     return ((uint32_t)data[0] << 16) + ((uint16_t)data[1] << 8) + data[2];
@@ -91,13 +91,13 @@ bool PZEM004T::setAddress(const IPAddress &newAddr)
 {
     ipaddr = newAddr;
     send(ipaddr, PZEM_SET_ADDRESS);
-    return recieve(RESP_SET_ADDRESS);
+    return receive(RESP_SET_ADDRESS);
 }
 
 bool PZEM004T::setPowerAlarm(uint8_t threshold)
 {
     send(ipaddr, PZEM_POWER_ALARM, threshold);
-    return recieve(RESP_POWER_ALARM);
+    return receive(RESP_POWER_ALARM);
 }
 
 void PZEM004T::send(const IPAddress &addr, uint8_t cmd, uint8_t data)
@@ -118,7 +118,7 @@ void PZEM004T::send(const IPAddress &addr, uint8_t cmd, uint8_t data)
     serial->write(bytes, sizeof(pzem));
 }
 
-bool PZEM004T::recieve(uint8_t resp, uint8_t *data)
+bool PZEM004T::receive(uint8_t resp, uint8_t *data)
 {
     uint8_t buffer[RESPONSE_SIZE];
 
