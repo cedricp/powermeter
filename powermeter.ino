@@ -55,7 +55,8 @@ loop()
     String msg;
     msg += String(pzem.voltage()) + " V\n";
     msg += String(pzem.current()) + " A\n";
-    msg += String(pzem.power()) + " W";
+    msg += String(pzem.power()) + " W\n";
+    msg += String(pzem.energy()) + " Wh";
     client.publish("powermeter/report", msg.c_str(), msg.length());
     timer = millis();
   }
